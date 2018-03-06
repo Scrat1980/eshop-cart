@@ -46,7 +46,7 @@
     </div>
 
 
-	<div class="row" <!--style="display: none-->">
+	<div class="row" style="display: none">
 		<?php echo $form->labelEx($model,'order_id'); ?>
 		<?php $model->order_id = $this->orderId; ?>
 		<?php echo $form->textField($model,'order_id'); ?>
