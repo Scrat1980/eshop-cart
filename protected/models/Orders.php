@@ -32,7 +32,7 @@ class Orders extends CActiveRecord
 		// will receive user inputs.
 		return array(
 			array('customer_id', 'required'),
-			array('customer_id', 'numerical', 'integerOnly'=>true),
+			array('customer_id', 'numerical', 'integerOnly'=>true, 'min' => 1),
 			array('date', 'safe'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
