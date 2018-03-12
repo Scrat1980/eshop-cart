@@ -3,50 +3,14 @@
 class ProductOrdersController extends Controller
 {
     public $orderId;
-    public $availableProducts;
-    public $existingProducts;
+    public $productsAvailable = [];
+    public $productsAll;
+
 	/**
 	 * @var string the default layout for the views. Defaults to '//layouts/column2', meaning
 	 * using two-column layout. See 'protected/views/layouts/column2.php'.
 	 */
 	public $layout='//layouts/column2';
-
-//	/**
-//	 * @return array action filters
-//	 */
-//	public function filters()
-//	{
-//		return array(
-//			'accessControl', // perform access control for CRUD operations
-//			'postOnly + delete', // we only allow deletion via POST request
-//		);
-//	}
-
-	/**
-	 * Specifies the access control rules.
-	 * This method is used by the 'accessControl' filter.
-	 * @return array access control rules
-	 */
-	public function accessRules()
-	{
-		return array(
-			array('allow',  // allow all users to perform 'index' and 'view' actions
-				'actions'=>array('index','view'),
-				'users'=>array('*'),
-			),
-			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('create','update'),
-				'users'=>array('@'),
-			),
-			array('allow', // allow admin user to perform 'admin' and 'delete' actions
-				'actions'=>array('admin','delete'),
-				'users'=>array('admin'),
-			),
-			array('deny',  // deny all users
-				'users'=>array('*'),
-			),
-		);
-	}
 
 	/**
 	 * Displays a particular model.
@@ -65,89 +29,53 @@ class ProductOrdersController extends Controller
 	 */
 	public function actionCreate()
 	{
-        $orderId = (int) $_GET['orderId'];
-        $existingProducts = ProductOrders::model()->findAll(
-            "order_id=:order_id",
-            array('order_id' => $orderId)
-        );
+        $this->orderId = (string) $_GET['orderId'];
 
-        $this->existingProducts = [];
-        foreach ($existingProducts as $existingProduct) {
-            $this->existingProducts[] = $existingProduct['product_id'];
-        }
+        $this->setProductsAvailable($this->orderId);
 
         $model=new ProductOrders();
-
-        // Uncomment the following line if AJAX validation is needed
-        // $this->performAjaxValidation($model);
 
         if(isset($_POST['ProductOrders']))
         {
             $model->attributes=$_POST['ProductOrders'];
             if($model->save())
-//                $this->redirect(array('view','id'=>$model->id));
                 $this->redirect(array('orders/index'));
-
         }
-
-        $this->orderId = $_GET['orderId'];
-		$modelProduct = new Product;
-		$this->availableProducts = Product::model()->findAll();
 
         $this->render('create',array(
             'model'=>$model,
         ));
-
-
-//        $model=new ProductOrders;
-//
-//        // Uncomment the following line if AJAX validation is needed
-//		// $this->performAjaxValidation($model);
-//
-//        if(isset($_POST['ProductOrders']))
-//		{
-//            $model->attributes=$_POST['ProductOrders'];
-//
-//            $productOrderExisted = false;
-//            $productOrders = $model->findAll();
-//
-//            foreach ($productOrders as $productOrder) {
-//
-//                if (
-//                    $model->attributes['product_id'] === $productOrder->product_id
-//                    && $model->attributes['order_id'] === $productOrder->order_id
-//                ) {
-//                    $newQuantity = $model->attributes['quantity'] + $productOrder->quantity;
-//                    $productOrder->quantity = $newQuantity;
-//                    $productOrder->save();
-//                    $productOrderExisted = true;
-//                    break;
-//
-//                }
-//            }
-//
-//            if (!$productOrderExisted) {
-//                if ($model->save()) {}
-//        var_dump($model->attributes);
-//        die;
-////                    $this->redirect(array('view', 'id' => $model->id));
-//            }
-//
-//            $this->redirect(array('orders/index'));
-//		}
-//
-//        $this->orderId = $_GET['orderId'];
-//		$modelProduct = new Product;
-//		$this->availableProducts = Product::model()->findAll();
-//
-////        if ($model->save()) {
-////            $this->redirect(array('orders/index'));
-////        }
-//
-//		$this->render('create',array(
-//			'model'=>$model
-//		));
 	}
+
+    protected function setProductsAvailable($orderId)
+    {
+        $connection = Yii::app()->db;
+        $sql = <<<SQL
+            SELECT product.id
+            FROM product
+            WHERE product.id NOT IN (
+              SELECT DISTINCT product_orders.product_id
+              FROM product_orders
+              WHERE product_orders.order_id = $orderId
+            )
+SQL;
+        $command = $connection->createCommand($sql);
+        $ids = $command->execute();
+        if (! is_array($ids)) {
+            $ids = [$ids];
+        }
+
+        $criteria = new CDbCriteria();
+        $criteria->addInCondition('id', $ids);
+        $products = Product::model()->findAll($criteria);
+
+        $this->productsAvailable = CHtml::listData(
+            $products,
+            'id',
+            'name'
+        );
+
+    }
 
 	/**
 	 * Updates a particular model.
@@ -156,15 +84,15 @@ class ProductOrdersController extends Controller
 	 */
 	public function actionUpdate($id)
 	{
-        $existingProducts = ProductOrders::model()->findAll(
-            "order_id=:order_id",
-            array('order_id' => $id)
-        );
-
-        $this->existingProducts = [];
-        foreach ($existingProducts as $existingProduct) {
-            $this->existingProducts[] = $existingProduct['product_id'];
-        }
+//        $existingProducts = ProductOrders::model()->findAll(
+//            "order_id=:order_id",
+//            array('order_id' => $id)
+//        );
+//
+//        $this->existingProducts = [];
+//        foreach ($existingProducts as $existingProduct) {
+//            $this->existingProducts[] = $existingProduct['product_id'];
+//        }
 
         $model=$this->loadModel($id);
 
@@ -182,7 +110,7 @@ class ProductOrdersController extends Controller
 
         $this->orderId = $_GET['orderId'];
         $modelProduct = new Product;
-        $this->availableProducts = Product::model()->findAll();
+        $this->productsAll = Product::model()->findAll();
 
         $this->render('update',array(
 			'model'=>$model,

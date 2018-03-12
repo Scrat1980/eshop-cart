@@ -27,7 +27,7 @@
                 echo "</br>";
                 echo "product name: {$item->product->name}";
                 echo "</br>";
-                echo "quantity: $item->quantity";
+                echo "quantity: {$item['quantity']}";
                 echo "</br>";
                 $itemUpdateRoute = 'productOrders/update';
                 $itemUpdateParams = array('id' => $item->id, 'orderId' => $item->order_id);

@@ -7,8 +7,9 @@
 <div class="form">
 
 <?php
-//    var_dump($this->customersAvailable);
+//    var_dump($this->productsAvailable);
 //    die;
+    $modelProduct = new Product();
 //?>
 
 <?php $form=$this->beginWidget('CActiveForm', array(
@@ -34,20 +35,32 @@
         )
         ?>
         <!--		--><?php //echo $form->textField($model,'product_id'); ?>
+        <?php echo $form->error($model,'customer_id'); ?>
+    </div>
+
+    <div class="row">
+        <?php echo $form->labelEx($model,'product_id'); ?>
+        <?php
+        echo $form->dropDownList(
+            $modelProduct,
+            'id',
+            $this->productsAvailable
+        )
+        ?>
+        <!--		--><?php //echo $form->textField($model,'product_id'); ?>
         <?php echo $form->error($model,'product_id'); ?>
     </div>
 
-<!--	<div class="row">-->
-<!--		--><?php //echo $form->labelEx($model,'customer_id'); ?>
-<!--		--><?php //echo $form->textField($model,'customer_id'); ?>
-<!--		--><?php //echo $form->error($model,'customer_id'); ?>
-<!--	</div>-->
+    <?php
+    $productOrdersModel = new ProductOrders();
 
-<!--	<div class="row">-->
-<!--		--><?php //echo $form->labelEx($model,'date'); ?>
-<!--		--><?php //echo $form->textField($model,'date'); ?>
-<!--		--><?php //echo $form->error($model,'date'); ?>
-<!--	</div>-->
+    ?>
+
+    <div class="row">
+        <?php echo $form->labelEx($productOrdersModel,'quantity'); ?>
+        <?php echo $form->textField($productOrdersModel,'quantity'); ?>
+        <?php echo $form->error($productOrdersModel,'quantity'); ?>
+    </div>
 
 	<div class="row buttons">
 		<?php echo CHtml::submitButton($model->isNewRecord ? 'Create' : 'Save'); ?>

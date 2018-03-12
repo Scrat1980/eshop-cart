@@ -6,22 +6,13 @@ class OrdersController extends Controller
 {
     public $orderId;
     public $customersAvailable;
+    public $productsAvailable;
 	/**
 	 * @var string the default layout for the views. Defaults to '//layouts/column2', meaning
 	 * using two-column layout. See 'protected/views/layouts/column2.php'.
 	 */
 	public $layout='//layouts/column2';
 
-//	/**
-//	 * @return array action filters
-//	 */
-//	public function filters()
-//	{
-//		return array(
-//			'accessControl', // perform access control for CRUD operations
-//			'postOnly + delete', // we only allow deletion via POST request
-//		);
-//	}
 
 	/**
 	 * Specifies the access control rules.
@@ -72,6 +63,13 @@ class OrdersController extends Controller
             $this->customersAvailable[] = $customerAvailable->login;
         }
 
+        $products = Product::model()->findAll();
+        $this->productsAvailable = CHtml::listData(
+            $products,
+            'id',
+            function($product) {return $product->name;}
+        );
+
         $model=new Orders;
 
 		// Uncomment the following line if AJAX validation is needed
@@ -80,9 +78,16 @@ class OrdersController extends Controller
 		if(isset($_POST['Orders']))
 		{
 			$model->attributes=$_POST['Orders'];
-			if($model->save())
-//				$this->redirect(array('view','id'=>$model->id));
-                $this->redirect(array('orders/index'));
+			if($model->save()) {
+                $poModel = new ProductOrders;
+                $poModel->product_id = $_POST['Product']['id'];
+                $poModel->order_id = $model->id;
+                $poModel->quantity = $_POST['ProductOrders']['quantity'];
+                if ($poModel->save()) {
+                    $this->redirect(array('orders/index'));
+                }
+
+            }
         }
 
 		$this->render('create',array(
@@ -146,10 +151,7 @@ class OrdersController extends Controller
 	{
 	    $this->orderId = 0;
 		$dataProvider=new CActiveDataProvider('Orders');
-//		echo "<pre>";
-//        var_dump($dataProvider);
-//        echo "</pre>";
-//        die;
+
 		$this->render('index',array(
 			'dataProvider'=>$dataProvider,
 		));

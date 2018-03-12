@@ -19,27 +19,15 @@
 	<p class="note">Fields with <span class="required">*</span> are required.</p>
 
 	<?php echo $form->errorSummary($model); ?>
+	<?php $displayType = ($type === 'create') ? 'block' : 'none' ?>
 
-    <?php
-    $availableProducts = [''];
-    if (is_array($this->availableProducts) && is_array($this->existingProducts)) {
-        foreach ($this->availableProducts as $availableProduct) {
-            if (!in_array($availableProduct->id, $this->existingProducts)) {
-                $availableProducts[] = $availableProduct->name;
-
-            }
-        }
-    }
-    ?>
-
-
-    <div class="row">
+    <div class="row" style="display: <?php echo $displayType ?>">
 		<?php echo $form->labelEx($model,'product_id'); ?>
         <?php
             echo $form->dropDownList(
                     $model,
                     'product_id',
-                    $availableProducts
+                    $this->productsAvailable
                 )
         ?>
 		<?php echo $form->error($model,'product_id'); ?>
